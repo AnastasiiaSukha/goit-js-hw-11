@@ -1,0 +1,27 @@
+.search-form {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.search-form input {
+  padding: 20px;
+  background-color: lightyellow;
+  border-color: skyblue;
+  border-radius: 10px;
+
+  & :focus {
+  }
+}
+
+.search-btn {
+  position: absolute;
+  padding: 15px;
+  background-color: skyblue;
+  border-radius: 5px;
+  border-color: lightyellow;
+  top: 120%;
+}

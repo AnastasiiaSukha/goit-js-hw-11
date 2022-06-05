@@ -5,77 +5,70 @@ import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
 
-let query = '';
 
-
-
-const refs = {
-    searchForm: document.querySelector('.search-form'),
-    gallery: document.querySelector('.gallery'),
-    loadMoreBtn: document.querySelector('.load-more')
-
+const refs =  {
+  searchForm: document.querySelector('.search-form'),
+  gallery: document.querySelector('.gallery'),
+  loading:document.querySelector('#loading'),
 };
 
-let SimpleGallery = new SimpleLightbox('.photo-card a',{
 
-});
+let query = '';
 
 const imagesApiService = new ApiService();
 
 refs.searchForm.addEventListener('submit', onSearch);
-// refs.loadMoreBtn.addEventListener('click', onLoadMore);
+
 
 
 function onSearch(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-  imagesApiService.searchQuery = e.currentTarget.elements.searchQuery.value.trim();
   const search = e.currentTarget.elements.searchQuery.value.trim();
-  
-  if (!search) {
+ 
+  if (search === '') {
     Notify.failure('Please write your option', {
       clickToClose: true,
       timeout: 2000,
     });
     return;
-  }
+  };
 
-    query = imagesApiService.query;
-    clearGallery();
+  query = search;
 
-    imagesApiService.resetPage();
-
-    GalleryFetchAndRender().then(result => {
-    if (result) {
-      Notify.success(`Hooray! We found ${result} images.`, {
+  imagesApiService.resetPage();
+  clearGallery();
+  
+  GalleryFetchAndRender().then(images=> {
+    if (images){
+      Notify.success(`Hooray! We found ${images} images.`, {
         clickToClose: true,
         timeout: 3000,
-      });
+      })
     }
-
-    refs.searchForm.reset();
-  });
+  })
+  refs.searchForm.reset();
 };
+  
 
-
-async function GalleryFetchAndRender() {
+  async function GalleryFetchAndRender() {
   try {
     imagesApiService.searchQuery = query;
-      const res = await imagesApiService.fetchImages(query);
-      SimpleGallery.refresh();
+      const response = await imagesApiService.fetchImages(query);
 
-    if (res.total === 0) {
+    if (response.total === 0) {
       Notify.failure('Sorry, there are no images matching your search query. Please try again.', {
         clickToClose: true,
       });
 
       clearGallery();
-    } else {
-      renderGallery(res.hits);
-      return res.totalHits;
     }
-  } catch (error) {
-      console.log(error);
+    else {
+      renderGallery(response.hits);
+      return response.totalHits;
+    }
+  }
+  catch (error) {
     Notify.info("We're sorry, but you've reached the end of search results.", {
       clickToClose: true,
       timeout: 3000,
@@ -87,10 +80,10 @@ function renderGallery(hits) {
   const imageCard = hits
     .map(
       ({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
-        `<div class="photo-card">
+        `<div class="photo-card" id="photo">
         <a class="photo-card_link" href="${largeImageURL}">
-         <img class="card_image" src="${webformatURL}" alt="${tags} loading="lazy"/></a>
-           <div class="info">
+         <img class="card-image" src="${webformatURL}" alt="${tags} loading="lazy"/></a>
+           <div class="card-info">
              <p class="info-item">
                <b>Likes ${likes}</b>
             </p>
@@ -108,9 +101,44 @@ function renderGallery(hits) {
     )
     .join('');
 
-  refs.gallery.insertAdjacentHTML('beforeend', imageCard);
+  refs.gallery.insertAdjacentHTML('afterbegin', imageCard);
+
+  
 }
 
 function clearGallery() {
   refs.gallery.innerHTML = '';
 }
+const observer = new IntersectionObserver(handleObserver, {
+  treshold: 0.5,
+  root: null,
+  
+});
+
+function handleObserver(entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && imagesApiService.query !== '') {
+      GalleryFetchAndRender();
+      imagesApiService.incrementPage();
+      // scrollSlowly()
+    }
+    })
+    
+ }
+
+
+
+
+observer.observe(refs.loading);
+
+// function scrollSlowly() {
+//   const { height: cardHeight } = document
+//   .querySelector(".gallery")
+//   .firstElementChild.getBoundingClientRect();
+
+// window.scrollBy({
+//   top: cardHeight * 2,
+//   behavior: "smooth",
+// });
+// }
+  

@@ -12,32 +12,30 @@ export default class ApiService{
 
     fetchImages() {
 
-    const url= `${BASE_URL}?key=${KEY}&q=${this.query}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.page}`;
+    const url= `${BASE_URL}?key=${KEY}&q=${this.query}&image_type=photo&orientation=horizontal&safesearch=true&page=${this.page}&per_page=40`;
 
     return axios
       .get(url)
-          .then(({ data }) => {
-        this.incrementPage();
-
-           return data;
+      .then(({ data}) => {
+        return data;
       })
       .catch(error => console.log(error));
     };
     
     
-    incrementPage() {
-        this.page += 1;
-    };
+  incrementPage() {
+    this.page += 1;
+  }
 
-    resetPage() {
-        this.page = 1;
-    };
+  resetPage() {
+    this.page = 1;
+  }
 
-    get query() {
-        return this.searchQuery;
-    };
+  get searchQuery () {
+    return this.query;
+  }
 
-    set query(newQuery) {
-        this.searchQuery = newQuery;
-    }
-};
+  set searchQuery (newQuery) {
+    this.query = newQuery;
+  }
+}

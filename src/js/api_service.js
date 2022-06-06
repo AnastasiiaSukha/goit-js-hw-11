@@ -16,7 +16,8 @@ export default class ApiService{
 
     return axios
       .get(url)
-      .then(({ data}) => {
+      .then(({ data }) => {
+        this.incrementPage();
         return data;
       })
       .catch(error => console.log(error));

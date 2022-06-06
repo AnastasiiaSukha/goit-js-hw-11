@@ -1,8 +1,7 @@
 
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import ApiService from './api_service';
-import SimpleLightbox from "simplelightbox";
-import "simplelightbox/dist/simple-lightbox.min.css";
+import LoadMoreBtn from './load-more-btn';
 
 
 
@@ -15,9 +14,15 @@ const refs =  {
 
 let query = '';
 
+const loadMoreBtn = new LoadMoreBtn({
+  selector: '[data-action="load-more"]',
+  hidden: true,
+});
+
 const imagesApiService = new ApiService();
 
 refs.searchForm.addEventListener('submit', onSearch);
+loadMoreBtn.refs.button.addEventListener('click', onLoadMore);
 
 
 
@@ -34,12 +39,14 @@ function onSearch(e) {
     return;
   };
 
+
   query = search;
 
+  loadMoreBtn.show();
   imagesApiService.resetPage();
   clearGallery();
   
-  GalleryFetchAndRender().then(images=> {
+  galleryFetchAndRender().then(images=> {
     if (images){
       Notify.success(`Hooray! We found ${images} images.`, {
         clickToClose: true,
@@ -47,11 +54,12 @@ function onSearch(e) {
       })
     }
   })
+  
   refs.searchForm.reset();
 };
   
 
-  async function GalleryFetchAndRender() {
+  async function galleryFetchAndRender() {
   try {
     imagesApiService.searchQuery = query;
       const response = await imagesApiService.fetchImages(query);
@@ -65,7 +73,7 @@ function onSearch(e) {
     }
     else {
       renderGallery(response.hits);
-      return response.totalHits;
+      loadMoreBtn.enable();
     }
   }
   catch (error) {
@@ -74,7 +82,11 @@ function onSearch(e) {
       timeout: 3000,
     });
   }
-}
+  }
+
+
+
+
 
 function renderGallery(hits) {
   const imageCard = hits
@@ -101,44 +113,44 @@ function renderGallery(hits) {
     )
     .join('');
 
-  refs.gallery.insertAdjacentHTML('afterbegin', imageCard);
+  refs.gallery.insertAdjacentHTML('beforeend', imageCard);
 
   
+}
+function onLoadMore(e) {
+   e.preventDefault();
+  imagesApiService.fetchImages()
+    .then((response) => {
+      renderGallery(response.hits);
+  }
+  )
 }
 
 function clearGallery() {
   refs.gallery.innerHTML = '';
 }
-const observer = new IntersectionObserver(handleObserver, {
-  treshold: 0.5,
-  root: null,
+
+
+// const observer = new IntersectionObserver(handleObserver, {
+//   treshold: 0.5,
+//   root: null,
   
-});
-
-function handleObserver(entries) {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && imagesApiService.query !== '') {
-      GalleryFetchAndRender();
-      imagesApiService.incrementPage();
-      // scrollSlowly()
-    }
-    })
-    
- }
-
-
-
-
-observer.observe(refs.loading);
-
-// function scrollSlowly() {
-//   const { height: cardHeight } = document
-//   .querySelector(".gallery")
-//   .firstElementChild.getBoundingClientRect();
-
-// window.scrollBy({
-//   top: cardHeight * 2,
-//   behavior: "smooth",
 // });
-// }
+
+// function handleObserver(entries) {
+//   entries.forEach(entry => {
+//     if (entry.isIntersecting && imagesApiService.query !== '') {
+//       GalleryFetchAndRender();
+//       imagesApiService.incrementPage();
+//       // scrollSlowly()
+//     }
+//     })
+    
+//  }
+
+
+
+
+// observer.observe(refs.loading);
+
   

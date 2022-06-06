@@ -18,16 +18,12 @@ export default class LoadMoreBtn {
     this.refs.label.textContent = 'Show more';
   }
 
-  disable() {
-    this.refs.button.disabled = true;
-    this.refs.label.textContent = 'loading...';
-  }
 
   show() {
     this.refs.button.classList.remove('is-hidden');
   }
-
   hide() {
     this.refs.button.classList.add('is-hidden');
   }
+
 }
